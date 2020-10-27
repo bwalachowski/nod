@@ -18,6 +18,14 @@ struct compareNumber {
 	}
 };
 
+struct comma final : std::numpunct<char>
+{
+	char do_decimal_point() const override 
+	{ 
+		return ','; 
+	}
+};
+
 // contains cars' entries that need to be paired
 std::map<std::string, std::pair<std::string, double> > startedRoads;
 // contains cars' total driven roads lengths, ordinarily A and S
@@ -35,6 +43,7 @@ int main()
 	//configure cout
 	std::cout << std::fixed;
 	std::cout.precision(1);
+	std::cout.imbue(std::locale(std::cout.getloc(), new comma));
 
 	while (getline(std::cin, inputLine, '\n'))
 	{
@@ -63,7 +72,10 @@ int main()
 			std::string carId = m[1];
 			std::string roadId = m[3];
 			//TODO: check if it works correctly on students idk it doesn't on my windows csuse it excpects number to be separated by "." not by ","
-			double roadPoint = stod(m[4]);
+			std::string roadPointStr = m[4];
+			roadPointStr[roadPointStr.size() - 2] = '.';
+
+			double roadPoint = stod(roadPointStr);
 			bool isA = roadId[0] == 'A';
 
 			// if this car started a road before
