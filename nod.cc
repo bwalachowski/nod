@@ -11,11 +11,11 @@ struct compareNumber {
 		if(str1.length() == str2.length()) 
 		{
 			
-			if (a.compare(1, std::string::npos, str2, 1, std::string::npos) == 0)
+			if (str1.compare(1, std::string::npos, str2, 1, std::string::npos) == 0)
 			{
 				return str1[0] < str2[0];
 			}
-			return a.compare(1, std::string::npos, str2, 1, std::string::npos) < 0;
+			return str1.compare(1, std::string::npos, str2, 1, std::string::npos) < 0;
 		}
 		return str1.length() < str2.length();
 	}
@@ -47,8 +47,6 @@ std::map<std::string, double, compareNumber> totalRoadDistances;
 int main()
 {
 	std::string inputLine;
-	// becomes true if line starts with ? and false otherwise
-	bool isCommand;
 	unsigned long long lineNumber = 0;
 
 	//configure cout
