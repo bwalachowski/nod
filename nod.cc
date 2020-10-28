@@ -65,9 +65,9 @@ int main()
 
 		
 		// car id in group 1, road id in group 3, road point in group 4
-		std::regex roadJoint("\\W*((\\d|[a-z]|[A-Z]){3,11})\\W+([AS][1-9]\\d{0,2})\\W+((0|([1-9]\\d*)),\\d0*)\\W*");
+		std::regex roadJoint("\\s*((\\d|[a-z]|[A-Z]){3,11})\\s+([AS][1-9]\\d{0,2})\\s+((0|([1-9]\\d*)),\\d)\\s*");
 		// car id or road id or both are in group 1
-		std::regex command("\\W*\\?\\W*(((\\d|[a-z]|[A-Z]){3,11})|([AS][1-9]\\d{0,2})|.{0})\\W*");
+		std::regex command("\\s*\\?\\s*(((\\d|[a-z]|[A-Z]){3,11})|([AS][1-9]\\d{0,2})|.{0})\\s*");
 		std::cmatch m;
 
 		
@@ -103,23 +103,37 @@ int main()
 					{
 						if (isA)
 						{
-							totalCarDistances.insert(std::make_pair(carId, std::make_pair(distanceDriven, 0)));
+							totalCarDistances.insert(std::make_pair(carId, std::make_pair(distanceDriven, -1)));
 						}
 
 						else
 						{
-							totalCarDistances.insert(std::make_pair(carId, std::make_pair(0, distanceDriven)));
+							totalCarDistances.insert(std::make_pair(carId, std::make_pair(-1, distanceDriven)));
 						}
 					}
 					else // totalCarDistances.find(carId) != totalCarDistances.end()
 					{
 						if (isA)
 						{
+							if (totalCarDistances.find(carId)->second.first == -1)
+							{
+								totalCarDistances.find(carId)->second.first = distanceDriven;
+							}
+							else 
+							{
 							totalCarDistances.find(carId)->second.first += distanceDriven;
+							}
 						}
 						else
 						{
+							if (totalCarDistances.find(carId)->second.second == -1)
+							{
+								totalCarDistances.find(carId)->second.second = distanceDriven;
+							}
+							else 
+							{
 							totalCarDistances.find(carId)->second.second += distanceDriven;
+							}
 						}
 					}
 
@@ -163,11 +177,11 @@ int main()
 			{
 				for (auto &it : totalCarDistances) {
 					std::cout << it.first;
-					if (it.second.first > 0)
+					if (it.second.first >= 0)
 					{
 						std::cout << " A " << it.second.first;
 					}
-					if (it.second.second > 0)
+					if (it.second.second >=0)
 					{
 						std::cout << " S " << it.second.second;
 					}
@@ -188,11 +202,11 @@ int main()
 			if (totalCarDistances.find(parameter) != totalCarDistances.end())
 			{
 				std::cout << parameter;
-				if (totalCarDistances.find(parameter)->second.first > 0)
+				if (totalCarDistances.find(parameter)->second.first >= 0)
 				{
 					std::cout << " A " << totalCarDistances.find(parameter)->second.first;
 				}
-				if (totalCarDistances.find(parameter)->second.second > 0)
+				if (totalCarDistances.find(parameter)->second.second >= 0)
 				{
 					std::cout << " S " << totalCarDistances.find(parameter)->second.second;
 				}
