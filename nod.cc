@@ -20,14 +20,21 @@ struct compareNumber {
 
 struct comma final : std::numpunct<char>
 {
-	char do_decimal_point() const override 
-	{ 
-		return ','; 
+	char do_decimal_point() const override
+	{
+		return ',';
 	}
 };
 
+struct startedRoadDetails {
+    std::string roadId;
+    double roadPoint;
+    unsigned long long lineNumber;
+    std::string lineText;
+};
+
 // contains cars' entries that need to be paired
-std::map<std::string, std::pair<std::string, double> > startedRoads;
+std::map<std::string, struct startedRoadDetails> startedRoads;
 // contains cars' total driven roads lengths, ordinarily A and S
 std::map<std::string, std::pair<double, double> > totalCarDistances;
 // contains roads' total driven lengths
@@ -39,6 +46,7 @@ int main()
 	std::string inputLine;
 	// becomes true if line starts with ? and false otherwise
 	bool isCommand;
+	unsigned long long lineNumber = 0;
 
 	//configure cout
 	std::cout << std::fixed;
@@ -47,6 +55,8 @@ int main()
 
 	while (getline(std::cin, inputLine, '\n'))
 	{
+	    ++lineNumber;
+
 		if (inputLine.length() == 0)
 		{
 			continue;
@@ -60,10 +70,9 @@ int main()
 			std::regex roadJoint("\\W*((\\d|[a-z]|[A-Z]){3,11})\\W+([AS][1-9]\\d{0,2})\\W+((0|([1-9]\\d*)),\\d0*)\\W*");
 			std::cmatch m;
 
-			// TODO: check if it is enough
 			if (!std::regex_match(inputLine.c_str(), roadJoint))
 			{
-				std::cerr << "wrong line, error" << std::endl;
+				std::cerr << "Error in line " << lineNumber << ": " << inputLine << std::endl;
 				continue;
 			}
 
@@ -82,11 +91,16 @@ int main()
 			if (startedRoads.find(carId) != startedRoads.end())
 			{
 				// road is paired
-				if (startedRoads.find(carId)->second.first == roadId)
+				if (startedRoads.find(carId)->second.roadId == roadId)
 				{
-					double startPoint = startedRoads.find(carId)->second.second;
+					double startPoint = startedRoads.find(carId)->second.roadPoint;
 					double endPoint = roadPoint;
-					double distanceDriven = abs(startPoint - endPoint);
+					double distanceDriven = startPoint - endPoint;
+					if (distanceDriven < 0)
+                    {
+                        distanceDriven = -distanceDriven;
+                    }
+
 					totalRoadDistances[roadId] += distanceDriven;
 
 					if (totalCarDistances.find(carId) == totalCarDistances.end())
@@ -112,31 +126,44 @@ int main()
 							totalCarDistances.find(carId)->second.second += distanceDriven;
 						}
 					}
+
+                    startedRoads.erase(carId);
 				}
 				else // startedRoads.find(carId)->second.first != roadId
 				{
-					std::cerr << "road not paired, error" << std::endl;
-				}
+					std::cerr << "Error in line " << startedRoads.find(carId)->second.lineNumber << ": "
+                        << startedRoads.find(carId)->second.lineText << std::endl;
 
-				// I remove current road, even if the road was not paired, possible fault
-				startedRoads.erase(carId);
+                    struct startedRoadDetails editedStartedRoad;
+                    editedStartedRoad.roadId = roadId;
+                    editedStartedRoad.roadPoint = roadPoint;
+                    editedStartedRoad.lineNumber = lineNumber;
+                    editedStartedRoad.lineText = inputLine;
+
+                    startedRoads.find(carId)->second = editedStartedRoad;
+				}
 
 			}
 			else // startedRoads.find(carId) == startedRoads.end()
 			{
-				startedRoads.insert(std::make_pair(carId, std::make_pair(roadId, roadPoint)));
+			    struct startedRoadDetails newStartedRoad;
+			    newStartedRoad.roadId = roadId;
+			    newStartedRoad.roadPoint = roadPoint;
+			    newStartedRoad.lineNumber = lineNumber;
+			    newStartedRoad.lineText = inputLine;
+
+				startedRoads.insert(std::make_pair(carId, newStartedRoad));
 			}
 		}
 		else // isCommand == true
 		{
 			// car id or road id or both are in group 1
-			// TODO: line '?' is not processed although it is correct IMO, it is because \W+ not \W*
-			std::regex command("\\W*\\?\\W+(((\\d|[a-z]|[A-Z]){3,11})|([AS][1-9]\\d{0,2})|.{0})\\W*");
+			std::regex command("\\W*\\?\\W*(((\\d|[a-z]|[A-Z]){3,11})|([AS][1-9]\\d{0,2})|.{0})\\W*");
 			std::cmatch m;
 
 			if (!std::regex_match(inputLine.c_str(), command))
 			{
-				std::cerr << "wrong line, error" << std::endl;
+				std::cerr << "Error in line " << lineNumber << ": " << inputLine << std::endl;
 				continue;
 			}
 
@@ -164,12 +191,12 @@ int main()
 				}
 				continue;
 			}
+
 			//need to check if it's valid road number because custom compare doesn't work on invalid ones
+			//but if road number is not correct, then it should not be found in map
 			std::regex road("[AS][1-9]\\d{0,2}");
 
-
-			if (std::regex_match(parameter, road) && 
-				totalCarDistances.find(parameter) != totalCarDistances.end())
+			if (totalCarDistances.find(parameter) != totalCarDistances.end())
 			{
 				std::cout << parameter;
 				if (totalCarDistances.find(parameter)->second.first > 0)
@@ -181,8 +208,10 @@ int main()
 					std::cout << " S " << totalCarDistances.find(parameter)->second.second;
 				}
 				std::cout << std::endl;
+				continue;
 			}
-			if (totalRoadDistances.find(parameter) != totalRoadDistances.end())
+			if (std::regex_match(parameter, road) &&
+                totalRoadDistances.find(parameter) != totalRoadDistances.end())
 			{
 				std::cout << parameter << " ";
 				std::cout << totalRoadDistances.find(parameter)->second << std::endl;
