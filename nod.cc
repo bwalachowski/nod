@@ -31,7 +31,7 @@ struct comma final : std::numpunct<char>
 
 struct startedRoadDetails {
     std::string roadId;
-    long double roadPoint;
+    double roadPoint;
     unsigned long long lineNumber;
     std::string lineText;
 };
@@ -39,9 +39,9 @@ struct startedRoadDetails {
 // contains cars' entries that need to be paired
 std::map<std::string, struct startedRoadDetails> startedRoads;
 // contains cars' total driven roads lengths, ordinarily A and S
-std::map<std::string, std::pair<long double, long double> > totalCarDistances;
+std::map<std::string, std::pair<double, double> > totalCarDistances;
 // contains roads' total driven lengths
-std::map<std::string, long double, compareNumber> totalRoadDistances;
+std::map<std::string, double, compareNumber> totalRoadDistances;
 
 
 int main()
@@ -80,7 +80,7 @@ int main()
 			std::string roadPointStr = m[4];
 			roadPointStr[roadPointStr.size() - 2] = '.';
 
-			long double roadPoint = stod(roadPointStr);
+			double roadPoint = stod(roadPointStr);
 			bool isA = roadId[0] == 'A';
 
 			// if this car started a road before
@@ -89,9 +89,9 @@ int main()
 				// road is paired
 				if (startedRoads.find(carId)->second.roadId == roadId)
 				{
-					long double startPoint = startedRoads.find(carId)->second.roadPoint;
-					long double endPoint = roadPoint;
-					long double distanceDriven = startPoint - endPoint;
+					double startPoint = startedRoads.find(carId)->second.roadPoint;
+					double endPoint = roadPoint;
+					double distanceDriven = startPoint - endPoint;
 					if (distanceDriven < 0)
 					{
 						distanceDriven = -distanceDriven;
