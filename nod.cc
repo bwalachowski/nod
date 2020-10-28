@@ -153,7 +153,7 @@ int main()
 		}
 	
 
-		else if (!std::regex_match(inputLine.c_str(), command)) 
+		else if (std::regex_match(inputLine.c_str(), command)) 
 		{
 
 			std::regex_match(inputLine.c_str(), m, command);
